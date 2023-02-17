@@ -34,7 +34,8 @@ paragraphs = article_content.find_all('p', {'class': 'id-StoryElement-paragraph'
 
 full_text = article_title + ' ' + lead_paragraph.get_text() + ' ' + ' '.join(
     [paragraph.get_text() for paragraph in paragraphs])
-full_text = full_text + '\n-----\n\nGenerate a catchy 30 second video script summary from this article in english without formatting, preferably in a code block'
+full_text = full_text + '\n-----\n\nGenerate a catchy 30 second video script summary from this article in english ' \
+                        'without formatting. Only return the text that should be spoken.'
 
 print(full_text)
 
