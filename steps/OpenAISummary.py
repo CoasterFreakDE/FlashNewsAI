@@ -1,6 +1,7 @@
 import os
 import time
 
+import fade
 import openai
 
 
@@ -33,9 +34,7 @@ class OpenAISummary:
             collected_events.append(event)  # save the event response
             event_text = event['choices'][0]['text']  # extract the text
             completion_text += event_text  # append the text
-            print(f"Text received: {event_text} ({event_time:.2f} seconds after request)")  # print the delay and text
 
         # print the time delay and text received
-        print(f"Full response received {event_time:.2f} seconds after request")
-        print(f"Full text received: {completion_text}")
+        print(fade.greenblue(f"Full response received {event_time:.2f} seconds after request"))
         return completion_text
