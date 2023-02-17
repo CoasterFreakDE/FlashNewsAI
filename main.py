@@ -1,9 +1,9 @@
 import os
 import random
-import webbrowser
+import time
 
 import dotenv
-import pyperclip
+import openai
 import requests
 from bs4 import BeautifulSoup
 
@@ -39,27 +39,35 @@ full_text = full_text + '\n-----\n\nGenerate a catchy 30 second video script sum
 
 print(full_text)
 
-#           Uncomment to use OpenAI API when ChatGPT API is ready
-#
-# openai.organization = os.getenv("OPENAI_ORGANIZATION")
-# openai.api_key = os.getenv("OPENAI_API_KEY")
-# ai_result = openai.Completion.create(
-#     model='ext-davinci-002-render-sha',
-#     prompt=full_text,
-#     temperature=0.7,
-#     max_tokens=1000,
-#     top_p=1.0,
-#     frequency_penalty=0.0,
-#     presence_penalty=1
-# )
-# print(ai_result)
+openai.organization = os.getenv("OPENAI_ORGANIZATION")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-pyperclip.copy(full_text)
-webbrowser.open('https://chat.openai.com')
+start_time = time.time()
 
-print('Copied prompt to clipboard. Open https://chat.openai.com to generate a summary.')
-summary = input('Enter summary: ')
+response = openai.Completion.create(
+    model='text-davinci-003',
+    prompt=full_text,
+    temperature=1,
+    max_tokens=1000,
+    stream=True,
+)
 
+# create variables to collect the stream of events
+collected_events = []
+completion_text = ''
+# iterate through the stream of events
+for event in response:
+    event_time = time.time() - start_time  # calculate the time delay of the event
+    collected_events.append(event)  # save the event response
+    event_text = event['choices'][0]['text']  # extract the text
+    completion_text += event_text  # append the text
+    print(f"Text received: {event_text} ({event_time:.2f} seconds after request)")  # print the delay and text
+
+# print the time delay and text received
+print(f"Full response received {event_time:.2f} seconds after request")
+print(f"Full text received: {completion_text}")
+
+summary = completion_text
 print('Generating audio file...')
 
 url = "https://api.elevenlabs.io/v1/text-to-speech/" + os.getenv("ELEVEN_LABS_VOICE_ID")
