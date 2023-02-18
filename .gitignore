@@ -160,7 +160,12 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-.temp/*.mp3
+.temp/*
+!.temp/.tmp
 .DS_Store
 
+*.mp4
+!assets/*
+
 .idea
+

@@ -5,7 +5,7 @@ import fade
 import openai
 
 
-class OpenAISummary:
+class OpenAIRequest:
 
     def __init__(self, model, prompt):
         self.model = model

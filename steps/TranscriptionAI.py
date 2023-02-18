@@ -1,5 +1,9 @@
+import json
 import os
+import time
+import urllib.parse
 
+import fade
 import requests
 
 
@@ -33,11 +37,23 @@ class TranscriptionAI:
             "file": ("file.mp3", open(self.audio_file, "rb"), "audio/mpeg")
         }
 
-        response = requests.post('https://api.oneai.com/api/v0/pipeline/async/file?pipeline=%7B%0A%20%20%20%20'
-                                 '%22input_type%22%3A%20%22conversation%22%2C%0A%20%20%20%20%22content_type%22%3A%20'
-                                 '%22audio%2Fwav%22%2C%0A%20%20%20%20%22steps%22%3A%20%5B%0A%20%20%20%20%20%20%7B%0A'
-                                 '%20%20%20%20%20%20%20%20%22skill%22%3A%20%22transcribe%22%0A%20%20%20%20%20%20%7D'
-                                 '%0A%20%20%20%20%5D%0A%7D', headers=headers, data=pipeline, files=files)
+        url_encoded_pipeline = urllib.parse.quote(json.dumps(pipeline))
+
+        response = requests.post('https://api.oneai.com/api/v0/pipeline/async/file?pipeline=' + url_encoded_pipeline,
+                                 headers=headers, files=files)
         output = response.json()
-        return output
+
+        if output['status'] == 'QUEUED':
+            task_id = output['task_id']
+
+            while True:
+                task_response = requests.get('https://api.oneai.com/api/v0/pipeline/async/tasks/' + task_id, headers=headers).json()
+
+                if task_response['status'] == 'COMPLETED':
+                    return task_response['result']['output'][0]['labels']
+
+                print(fade.greenblue(f'Waiting for transcription to complete...'))
+                time.sleep(5)
+
+        return output['result']['output'][0]['labels']
 
