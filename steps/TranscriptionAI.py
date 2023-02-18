@@ -50,10 +50,25 @@ class TranscriptionAI:
                 task_response = requests.get('https://api.oneai.com/api/v0/pipeline/async/tasks/' + task_id, headers=headers).json()
 
                 if task_response['status'] == 'COMPLETED':
-                    return task_response['result']['output'][0]['labels']
+                    spoken_text = task_response['result']['output'][0]['text']
+
+                    # Split the spoken_text by newlines
+                    lines = spoken_text.split('\n')
+
+                    # Filter the lines that contain spoken sentences
+                    spoken_sentences = [line[line.index(':') + 1:] for line in lines if ':' in line]
+
+                    return task_response['result']['output'][0]['labels'], spoken_sentences
 
                 print(fade.greenblue(f'Waiting for transcription to complete...'))
                 time.sleep(5)
 
-        return output['result']['output'][0]['labels']
+        spoken_text = output['result']['output'][0]['text']
+
+        # Split the spoken_text by newlines
+        lines = spoken_text.split('\n')
+
+        # Filter the lines that contain spoken sentences
+        spoken_sentences = [line[line.index(':') + 1:] for line in lines if ':' in line]
+        return output['result']['output'][0]['labels'], spoken_sentences
 

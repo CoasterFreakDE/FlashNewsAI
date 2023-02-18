@@ -4,4 +4,7 @@ python-dotenv~=0.21.1
 openai~=0.26.5
 fade~=0.0.9
 google-api-python-client~=2.78.0
+google-auth==2.16.1
+google-auth-oauthlib
+google-auth-httplib2
 moviepy~=1.0.3
