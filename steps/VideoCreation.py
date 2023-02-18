@@ -18,13 +18,10 @@ class VideoCreation:
         clip = clip.set_audio(AudioFileClip(self.audio_file))
 
         for step in self.transcript_steps:
-            print(fade.greenblue(f"Adding step: {step}"))
             start_time = timestamp_from_str(step["timestamp"])
             end_time = timestamp_from_str(step["timestamp_end"])
             step_duration = end_time - start_time
             step_duration_seconds = step_duration.seconds + 1
-            print(fade.greenblue(f"Step duration: {step_duration_seconds}"))
-
             text_clip = TextClip(step["span_text"], fontsize=70, color='white')
             text_clip = text_clip.set_duration(step_duration_seconds)
             text_clip = text_clip.set_position('center').set_start(start_time.second)
@@ -35,7 +32,8 @@ class VideoCreation:
         video = CompositeVideoClip([clip])
 
         # Write the result to a file (many options available !)
-        video.write_videofile(".temp/output.mp4", fps=30, audio_codec="aac", audio_bitrate="192k", threads=4)
+        video.write_videofile(".temp/output.mp4", fps=30, codec="libx264", audio_codec="aac", audio_bitrate="192k",
+                              threads=4, preset="ultrafast")
         ffmpeg_tools.ffmpeg_extract_subclip(
             ".temp/output.mp4", 0, total_seconds, targetname=f"output.mp4"
         )
