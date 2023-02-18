@@ -1,3 +1,6 @@
+import json
+import os
+import random
 import sys
 
 import dotenv
@@ -7,7 +10,6 @@ from steps.ElevenLabsTTS import ElevenLabsTTS
 from steps.OpenAISummary import OpenAISummary
 from steps.TranscriptionAI import TranscriptionAI
 from steps.WebScraper import WebScraper
-
 
 dotenv.load_dotenv()
 url = 'https://merkur.de/welt'
@@ -35,7 +37,7 @@ if __name__ == '__main__':
         )
         print(fade.greenblue('Please enter the URL of the article you want to listen to: (https://merkur.de/welt)'))
         url = input() or url
-        print(fade.greenblue(f'Do you want to scrape the article from {url} now? (y/n)'))
+        print(fade.greenblue(f'Do you want to scrape the article from {url} now? (y/N)'))
         listen = input()
         if listen != 'y':
             print(fade.greenblue('Exiting...'))
@@ -46,12 +48,20 @@ if __name__ == '__main__':
     print(fade.greenblue('Generating summary...'))
     summary = OpenAISummary('text-davinci-003', full_text).generate()
     print(fade.greenblue('Generating audio file...'))
-    audio_file = ElevenLabsTTS(summary, article_short).generate()
+    eleven_labs_vid = os.getenv("ELEVEN_LABS_VOICE_ID")
+    if eleven_labs_vid == "RANDOM":
+        with open('voices.json', encoding='utf-8') as f:
+            voices = json.load(f)
+            eleven_labs_vid = random.choice(list(voices.keys()))
+
+    selected_voice = voices[eleven_labs_vid]
+
+    print(fade.greenblue('Selected voice: ' + selected_voice['name']))
+
+    audio_file = ElevenLabsTTS(summary, article_short, eleven_labs_vid, selected_voice).generate()
     if audio_file is None:
         print(fade.fire('Error generating audio file.'))
 
     transcript = TranscriptionAI(audio_file).transcribe()
     print(fade.greenblue('Transcript:'))
     print(transcript)
-
-

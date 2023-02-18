@@ -6,12 +6,14 @@ import requests
 
 class ElevenLabsTTS:
 
-    def __init__(self, text, file_name):
+    def __init__(self, text, file_name, voice_id, voice_data):
         self.text = text
         self.file_name = file_name
+        self.voice_id = voice_id
+        self.voice_data = voice_data
 
     def generate(self):
-        url = "https://api.elevenlabs.io/v1/text-to-speech/" + os.getenv("ELEVEN_LABS_VOICE_ID")
+        url = "https://api.elevenlabs.io/v1/text-to-speech/" + self.voice_id
         api_key = os.getenv("ELEVEN_LABS_API_KEY")
 
         headers = {
@@ -21,8 +23,8 @@ class ElevenLabsTTS:
         data = {
             "text": self.text,
             "voice_settings": {
-                "stability": 0.25,
-                "similarity_boost": 0.75
+                "stability": self.voice_data["stability"],
+                "similarity_boost": self.voice_data["similarity_boost"],
             }
         }
 
@@ -36,4 +38,3 @@ class ElevenLabsTTS:
         else:
             print(fade.fire(f"Error: {response.status_code} {response.text}"))
             return None
-

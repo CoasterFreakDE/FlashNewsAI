@@ -1,0 +1,12 @@
+{
+  "ONHuGoJpMiqo5xL0yxCT": {
+    "name": "Mark Rober",
+    "stability": 0.75,
+    "similarity_boost": 0.75
+  },
+  "tE8yNnPdFgAoODDuoEhB": {
+    "name": "The Narrator",
+    "stability": 0.25,
+    "similarity_boost": 0.75
+  }
+}
