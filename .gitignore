@@ -171,3 +171,6 @@ cython_debug/
 
 youtube_secret.json
 token files/token_youtube_v3.json
+
+output/*
+!output/.gitkeep

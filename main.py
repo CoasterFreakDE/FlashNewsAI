@@ -1,7 +1,7 @@
 import json
 import os
 import random
-import re
+import shutil
 import sys
 from uuid import uuid4
 
@@ -81,6 +81,18 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     audio_file = ElevenLabsTTS(ai_output, uuid, eleven_labs_vid, selected_voice).generate()
     if audio_file is None:
         print(fade.fire('Error generating audio file.'))
+
+    print(fade.greenblue('Do you want to export the files (e) or automatically upload the video (a)? (a)'))
+    export = input()
+    if export == 'e':
+        print(fade.greenblue('Exporting files...'))
+        with open('output/output_' + uuid + '.txt', 'w', encoding='utf-8') as f:
+            f.write(ai_output)
+
+        shutil.copyfile(audio_file, 'output/output_' + uuid + '.mp3')
+
+        print(fade.greenblue('Files exported.'))
+        exit(0)
 
     transcript_steps, spoken_sentences = TranscriptionAI(audio_file).transcribe()
     print(fade.greenblue('Transcript generated.'))
