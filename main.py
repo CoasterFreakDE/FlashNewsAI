@@ -82,7 +82,7 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     if audio_file is None:
         print(fade.fire('Error generating audio file.'))
 
-    print(fade.greenblue('Do you want to export the files (e) or automatically upload the video (a)? (a)'))
+    print(fade.greenblue('Do you want to export the files (e) or automatically generate the video (A)?'))
     export = input()
     if export == 'e':
         print(fade.greenblue('Exporting files...'))
@@ -99,6 +99,10 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     print(fade.greenblue('Generating video...'))
     video = VideoCreation(audio_file, transcript_steps, spoken_sentences).generate()
     print(fade.greenblue('Video generated.'))
-    print(fade.greenblue('Uploading video...'))
-    yt = YoutubeUploader('output.mp4', yt_title, yt_description).upload()
-    print(fade.greenblue('Video uploaded.'))
+
+    print(fade.greenblue('Do you want to upload the video (u)?'))
+    upload = input()
+    if upload == 'u':
+        print(fade.greenblue('Uploading video...'))
+        yt = YoutubeUploader('output.mp4', yt_title, yt_description).upload()
+        print(fade.greenblue('Video uploaded.'))
