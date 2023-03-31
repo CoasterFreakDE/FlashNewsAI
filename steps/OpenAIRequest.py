@@ -17,9 +17,11 @@ class OpenAIRequest:
 
         start_time = time.time()
 
-        response = openai.Completion.create(
+        response = openai.ChatCompletion.create(
             model=self.model,
-            prompt=self.prompt,
+            messages=[
+                {"role": "system", "content": self.prompt}
+            ],
             temperature=1,
             max_tokens=1000,
             stream=True,
@@ -32,7 +34,7 @@ class OpenAIRequest:
         for event in response:
             event_time = time.time() - start_time  # calculate the time delay of the event
             collected_events.append(event)  # save the event response
-            event_text = event['choices'][0]['text']  # extract the text
+            event_text = event['choices'][0]['delta']['content'] if hasattr(event['choices'][0], "delta") and hasattr(event['choices'][0]['delta'], "content") else ""  # extract the text
             completion_text += event_text  # append the text
 
         # print the time delay and text received
