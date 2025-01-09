@@ -43,15 +43,11 @@ if __name__ == '__main__':
         exit(0)
 
     print(fade.greenblue('Generating video script...'))
+    print("" if len(os.getenv('STORY_OVERRIDE')) < 1 else fade.greenblue('Using story override: ' + os.getenv('STORY_OVERRIDE')))
     ai_output = OpenAIRequest(os.getenv("OPENAI_MODEL"), f"""
 I want you to act as a storyteller. 
-Over the past centuries, there were many unexplained buildings and phenomena in our universe.
 
-I want to create a video about these unexplainable phenomena.
-Write a script for a 30-second video script (only what I need to speak) about unexplainable phenomena of our universe.
-Please also include information, that are not proven and just possible explanations.
-
-{"Pick one random phenomena." if len(os.getenv('STORY_OVERRIDE')) < 1 else os.getenv('STORY_OVERRIDE')}
+{"Over the past centuries, there were many unexplained buildings and phenomena in our universe. I want to create a video about these unexplainable phenomena. Write a script for a 30-second video script (only what I need to speak) about unexplainable phenomena of our universe. Please also include information, that are not proven and just possible explanations." if len(os.getenv('STORY_OVERRIDE')) < 1 else os.getenv('STORY_OVERRIDE')}
 
 Just write the script. No introducing sentence. Start directly with the text, I need to say.
 Start with: “Welcome to our exploration of the unexplained phenomena of our universe”.

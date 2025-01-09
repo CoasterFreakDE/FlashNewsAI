@@ -23,7 +23,7 @@ class OpenAIRequest:
                 {"role": "system", "content": self.prompt}
             ],
             temperature=1,
-            max_tokens=1000,
+            max_completion_tokens=1000,
             stream=True,
         )
 
