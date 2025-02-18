@@ -2,7 +2,7 @@ import os
 import time
 
 import fade
-import openai
+from openai import OpenAI
 
 
 class OpenAIRequest:
@@ -10,14 +10,14 @@ class OpenAIRequest:
     def __init__(self, model, prompt):
         self.model = model
         self.prompt = prompt
+        self.client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+        )
 
     def generate(self):
-        openai.organization = os.getenv("OPENAI_ORGANIZATION")
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-
         start_time = time.time()
 
-        response = openai.ChatCompletion.create(
+        stream = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": self.prompt}
@@ -29,12 +29,12 @@ class OpenAIRequest:
 
         # create variables to collect the stream of events
         collected_events = []
-        completion_text = ''
+        completion_text = ""
         # iterate through the stream of events
-        for event in response:
+        for chunk in stream:
             event_time = time.time() - start_time  # calculate the time delay of the event
-            collected_events.append(event)  # save the event response
-            event_text = event['choices'][0]['delta']['content'] if hasattr(event['choices'][0], "delta") and hasattr(event['choices'][0]['delta'], "content") else ""  # extract the text
+            collected_events.append(chunk)  # save the event response
+            event_text = chunk.choices[0].delta.content or ""
             completion_text += event_text  # append the text
 
         # print the time delay and text received

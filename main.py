@@ -62,6 +62,16 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
 
     print(fade.greenblue('Title: ' + yt_title))
     print(fade.greenblue('Description: ' + yt_description))
+    
+    print(fade.greenblue('Generating images...'))
+    image_prompts = OpenAIRequest(os.getenv("OPENAI_MODEL"),
+                                   "Generate a list of image prompts (one image for each sentence) as detailed as possible in the style of " + 
+                                   os.getenv("IMAGE_STYLE")
+                                   + " and separate them by @ for the following video script: " + ai_output).generate()
+    
+    prompts = image_prompts.split('@')
+    for prompt in prompts:
+        print(fade.greenblue(f"Prompt: {prompt}"))
 
     print(fade.greenblue('Generating audio file...'))
     eleven_labs_vid = os.getenv("ELEVEN_LABS_VOICE_ID")
@@ -97,7 +107,7 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     transcript_steps, spoken_sentences = TranscriptionAI(audio_file).transcribe()
     print(fade.greenblue('Transcript generated.'))
     print(fade.greenblue('Generating video...'))
-    video = VideoCreation(audio_file, transcript_steps, spoken_sentences).generate()
+    VideoCreation(audio_file, transcript_steps, spoken_sentences).generate()
     print(fade.greenblue('Video generated.'))
 
     upload = ''
