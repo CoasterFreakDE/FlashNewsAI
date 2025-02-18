@@ -2,13 +2,11 @@ import json
 import os
 import random
 import shutil
-from uuid import uuid4
 
 import dotenv
 import fade
-import urllib
 
-from steps.OpenAIImageRequest import OpenAIImageRequest
+from steps.CFAIFluxRequest import CFAIFluxRequest
 from steps.ElevenLabsTTS import ElevenLabsTTS
 from steps.OpenAIRequest import OpenAIRequest
 from steps.TranscriptionAI import TranscriptionAI
@@ -18,6 +16,12 @@ from steps.YoutubeUploader import YoutubeUploader
 dotenv.load_dotenv()
 
 answers = list(os.getenv("OPTIONS"))
+
+def sanitize_filename(filename: str) -> str:
+    # Replace invalid filename characters with underscores
+    import re
+    # Remove quotes and replace other invalid characters with underscore
+    return re.sub(r'[<>:"/\\|?*\']', '_', filename.replace('"', '').replace("'", "")).replace(' ', '_')
 
 if __name__ == '__main__':
     print(
@@ -51,7 +55,6 @@ if __name__ == '__main__':
     
     story_topic = "Over the past centuries, there were many unexplained buildings and phenomena in our universe" if len(os.getenv('TOPIC_OVERRIDE')) < 1 else os.getenv('TOPIC_OVERRIDE')
     
-    
     # Generate a topic, that was not used before (save topics to a file)
     used_topics = []
     try:
@@ -62,12 +65,18 @@ if __name__ == '__main__':
         pass
             
     topic = OpenAIRequest(os.getenv("OPENAI_MODEL"), f"""
-            Generate a topic for {story_topic}. The topic should be something that is not used before. 
+            Generate a topic for {story_topic}. The topic should be something that is not used before.
+            Keep the topic short and concise. (1-4 words)
 
             Do not use the following topics (we used them before):
             {used_topics}
 
             """).generate()
+    
+    topic_named = sanitize_filename(topic.lower())
+    
+    # create topic folder
+    os.makedirs(f'output/{topic_named}', exist_ok=True)
                 
     with open('topics.txt', 'a', encoding='utf-8') as f:
         f.write(f"{topic}\n")
@@ -108,14 +117,15 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     
     prompts = image_prompts.split('@')
     print(fade.greenblue(f'Generating {len(prompts)} images...'))
-    image_urls = []
+    image_bytes_list = []
     for prompt in prompts:
         if len(prompt) < 1:
             continue
         print(fade.greenblue(f"Prompt: {prompt}"))
-        image_url = OpenAIImageRequest(prompt).generate()
-        image_urls.append(image_url)
-        print(fade.greenblue(f"Image URL: {image_url}"))
+        image_bytes = CFAIFluxRequest(prompt).generate()
+        if image_bytes is None:
+            pass
+        image_bytes_list.append(image_bytes)
         
 
     print(fade.greenblue('Generating audio file...'))
@@ -128,9 +138,9 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     selected_voice = voices[eleven_labs_vid]
     print(fade.greenblue('Selected voice: ' + selected_voice['name']))
 
-    uuid = str(uuid4())
+   
 
-    audio_file = ElevenLabsTTS(ai_output, uuid, eleven_labs_vid, selected_voice).generate()
+    audio_file = ElevenLabsTTS(ai_output, topic_named, eleven_labs_vid, selected_voice).generate()
     if audio_file is None:
         print(fade.fire('Error generating audio file.'))
     export = ''
@@ -141,15 +151,16 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
         export = answers[1]
     if export == 'e':
         print(fade.greenblue('Exporting files...'))
-        with open('output/output_' + uuid + '.txt', 'w', encoding='utf-8') as f:
+        with open(f'output/{topic_named}/script' + '.txt', 'w', encoding='utf-8') as f:
             f.write(ai_output)
 
-        shutil.copyfile(audio_file, 'output/output_' + uuid + '.mp3')
+        shutil.copyfile(audio_file, f'output/{topic_named}/voiceover' + '.mp3')
         
         index = 0
-        for image_url in image_urls:
-            target_path = os.path.join('output', 'output_' + uuid + "_" + str(index) + '.png')
-            urllib.request.urlretrieve(image_url, target_path)
+        for image_bytes in image_bytes_list:
+            target_path = os.path.join(f'output/{topic_named}', 'image_' + str(index) + '.png')
+            with open(target_path, 'wb') as f:
+                f.write(image_bytes)
             index += 1
 
         print(fade.greenblue('Files exported.'))

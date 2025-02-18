@@ -6,7 +6,7 @@ import requests
 
 class ElevenLabsTTS:
 
-    def __init__(self, text, file_name, voice_id, voice_data):
+    def __init__(self, text, file_name: str, voice_id, voice_data):
         self.text = text
         self.file_name = file_name
         self.voice_id = voice_id
