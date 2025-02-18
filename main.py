@@ -29,8 +29,8 @@ if __name__ == '__main__':
 ⣱⣿⣿⡟⡐⣰⣧⡷⣿⣴⣧⣤⣼⣯⢸⡿⠁⣰⠟⢀⣼⠏⣲⠏⢸⣿⡟⣿⣿⣿⣿⣿⣿
 ⣿⣿⡟⠁⠄⠟⣁⠄⢡⣿⣿⣿⣿⣿⣿⣦⣼⢟⢀⡼⠃⡹⠃⡀⢸⡿⢸⣿⣿⣿⣿⣿⡟
 ⣿⣿⠃⠄⢀⣾⠋⠓⢰⣿⣿⣿⣿⣿⣿⠿⣿⣿⣾⣅⢔⣕⡇⡇⡼⢁⣿⣿⣿⣿⣿⣿⢣
-⣿⡟⠄⠄⣾⣇⠷⣢⣿⣿⣿⣿⣿⣿⣿⣭⣀⡈⠙⢿⣿⣿⡇⡧⢁⣾⣿⣿⣿⣿⣿⢏⣾      Welcome to unexplained phenomena of our universe!
-⣿⡇⠄⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⢻⠇⠄⠄⢿⣿⡇⢡⣾⣿⣿⣿⣿⣿⣏⣼⣿      A project by @CoasterFreakDE
+⣿⡟⠄⠄⣾⣇⠷⣢⣿⣿⣿⣿⣿⣿⣿⣭⣀⡈⠙⢿⣿⣿⡇⡧⢁⣾⣿⣿⣿⣿⣿⢏⣾      Welcome to FlashNewsAI!
+⣿⡇⠄⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⢻⠇⠄⠄⢿⣿⡇⢡⣾⣿⣿⣿⣿⣿⣏⣼⣿      A project by @LiamXSage
 ⣿⣷⢰⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⢰⣧⣀⡄⢀⠘⡿⣰⣿⣿⣿⣿⣿⣿⠟⣼⣿⣿
 ⢹⣿⢸⣿⣿⠟⠻⢿⣿⣿⣿⣿⣿⣿⣿⣶⣭⣉⣤⣿⢈⣼⣿⣿⣿⣿⣿⣿⠏⣾⣹⣿⣿    This project is licensed under the GPL3 License.
 ⢸⠇⡜⣿⡟⠄⠄⠄⠈⠙⣿⣿⣿⣿⣿⣿⣿⣿⠟⣱⣻⣿⣿⣿⣿⣿⠟⠁⢳⠃⣿⣿⣿
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     print("" if len(os.getenv('TOPIC_OVERRIDE')) < 1 else fade.greenblue('Using topic override: ' + os.getenv('TOPIC_OVERRIDE')))
     
     
-    story_topic = "Over the past centuries, there were many unexplained buildings and phenomena in our universe" if len(os.getenv('TOPIC_OVERRIDE')) < 1 else os.getenv('TOPIC_OVERRIDE')
+    story_topic = "A fake news story that could be published on television."
     
     # Generate a topic, that was not used before (save topics to a file)
     used_topics = []
@@ -65,7 +65,13 @@ if __name__ == '__main__':
         pass
             
     topic = OpenAIRequest(os.getenv("OPENAI_MODEL"), f"""
-            Generate a topic for {story_topic}. The topic should be something that is not used before.
+            Generate a precise/specific topic about the following:
+            
+            {story_topic}
+            
+            ---
+        
+            The topic should be something that is not used before.
             Keep the topic short and concise. (1-4 words)
 
             Do not use the following topics (we used them before):
@@ -84,13 +90,18 @@ if __name__ == '__main__':
     print(fade.greenblue(f'Topic: {topic}'))
     
     ai_output = OpenAIRequest(os.getenv("OPENAI_MODEL"), f"""
-I want you to act as a storyteller. 
-
-{"Write a script for a 30-60 second video script (only what I need to speak) about {topic}. Please also include information, that are not proven and just possible explanations." if len(os.getenv('STORY_OVERRIDE')) < 1 else os.getenv('STORY_OVERRIDE')}
-
-Just write the script. No introducing sentence. Start directly with the text, I need to say.
-Start with: “Welcome to our exploration of the unexplained phenomena of our universe”.
+        You are a news reporter.
+        I want you to discuss {topic}.
+        
+        Tell it as if you were speaking about it at a television news report, drawing in your audience until the end.
+        Always begin with some scroll-stopping hook such as "This unsolved mystery has people baffled."
+        or "You won't believe what happened to [insert person here]."
+        or "Try not to panic, ..." etc. these are just examples, but I want it to draw in your listener.
+        
+        Try to make the story as interesting as possible, but also make it believable.
+        Keep the story short and to the point, but complete. (6-12 sentences)
     """).generate()
+
 
     yt_information = OpenAIRequest(os.getenv("OPENAI_MODEL"),
                                    "Generate a catching youtube title and description (seperated by @) without"
@@ -104,9 +115,9 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     
     print(fade.greenblue('Generating images...'))
     image_prompts = OpenAIRequest(os.getenv("OPENAI_MODEL"),
-                                   f"""Generate a list of image prompts (one image for each sentence) as detailed as possible in the style of
+                                   f"""Generate a list of image prompts (2-5 images for each sentence, whenever it makes sense) as detailed as possible in the style of
                                    {os.getenv("IMAGE_STYLE")} (mention the style in each prompt),
-                                   Separate the prompts by '@'!
+                                   Separate the prompts by '\n'!
                                    
                                    This is the full video script:
                                    
@@ -115,11 +126,11 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
                                    If there are characters in the story, describe their main features the same in all prompts.
                                    """).generate()
     
-    prompts = image_prompts.split('@')
+    prompts = image_prompts.split('\n')
     print(fade.greenblue(f'Generating {len(prompts)} images...'))
     image_bytes_list = []
     for prompt in prompts:
-        if len(prompt) < 1:
+        if len(prompt) <= 5:
             continue
         print(fade.greenblue(f"Prompt: {prompt}"))
         image_bytes = CFAIFluxRequest(prompt).generate()
@@ -158,10 +169,13 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
         
         index = 0
         for image_bytes in image_bytes_list:
-            target_path = os.path.join(f'output/{topic_named}', 'image_' + str(index) + '.png')
-            with open(target_path, 'wb') as f:
-                f.write(image_bytes)
-            index += 1
+            try:
+                target_path = os.path.join(f'output/{topic_named}', 'image_' + str(index) + '.png')
+                with open(target_path, 'wb') as f:
+                    f.write(image_bytes)
+                index += 1
+            except Exception as e:
+                print(fade.fire(f'Error exporting image {index}: {e}'))
 
         print(fade.greenblue('Files exported.'))
         exit(0)
