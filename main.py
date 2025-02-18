@@ -6,7 +6,9 @@ from uuid import uuid4
 
 import dotenv
 import fade
+import urllib
 
+from steps.OpenAIImageRequest import OpenAIImageRequest
 from steps.ElevenLabsTTS import ElevenLabsTTS
 from steps.OpenAIRequest import OpenAIRequest
 from steps.TranscriptionAI import TranscriptionAI
@@ -44,10 +46,38 @@ if __name__ == '__main__':
 
     print(fade.greenblue('Generating video script...'))
     print("" if len(os.getenv('STORY_OVERRIDE')) < 1 else fade.greenblue('Using story override: ' + os.getenv('STORY_OVERRIDE')))
+    print("" if len(os.getenv('TOPIC_OVERRIDE')) < 1 else fade.greenblue('Using topic override: ' + os.getenv('TOPIC_OVERRIDE')))
+    
+    
+    story_topic = "Over the past centuries, there were many unexplained buildings and phenomena in our universe" if len(os.getenv('TOPIC_OVERRIDE')) < 1 else os.getenv('TOPIC_OVERRIDE')
+    
+    
+    # Generate a topic, that was not used before (save topics to a file)
+    used_topics = []
+    try:
+        with open('topics.txt', 'r', encoding='utf-8') as f:
+            for line in f:
+                used_topics.append(line.strip())
+    except FileNotFoundError:
+        pass
+            
+    topic = OpenAIRequest(os.getenv("OPENAI_MODEL"), f"""
+            Generate a topic for {story_topic}. The topic should be something that is not used before. 
+
+            Do not use the following topics (we used them before):
+            {used_topics}
+
+            """).generate()
+                
+    with open('topics.txt', 'a', encoding='utf-8') as f:
+        f.write(f"{topic}\n")
+    
+    print(fade.greenblue(f'Topic: {topic}'))
+    
     ai_output = OpenAIRequest(os.getenv("OPENAI_MODEL"), f"""
 I want you to act as a storyteller. 
 
-{"Over the past centuries, there were many unexplained buildings and phenomena in our universe. I want to create a video about these unexplainable phenomena. Write a script for a 30-second video script (only what I need to speak) about unexplainable phenomena of our universe. Please also include information, that are not proven and just possible explanations." if len(os.getenv('STORY_OVERRIDE')) < 1 else os.getenv('STORY_OVERRIDE')}
+{"Write a script for a 30-60 second video script (only what I need to speak) about {topic}. Please also include information, that are not proven and just possible explanations." if len(os.getenv('STORY_OVERRIDE')) < 1 else os.getenv('STORY_OVERRIDE')}
 
 Just write the script. No introducing sentence. Start directly with the text, I need to say.
 Start with: “Welcome to our exploration of the unexplained phenomena of our universe”.
@@ -65,13 +95,28 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
     
     print(fade.greenblue('Generating images...'))
     image_prompts = OpenAIRequest(os.getenv("OPENAI_MODEL"),
-                                   "Generate a list of image prompts (one image for each sentence) as detailed as possible in the style of " + 
-                                   os.getenv("IMAGE_STYLE")
-                                   + " and separate them by @ for the following video script: " + ai_output).generate()
+                                   f"""Generate a list of image prompts (one image for each sentence) as detailed as possible in the style of
+                                   {os.getenv("IMAGE_STYLE")} (mention the style in each prompt),
+                                   Separate the prompts by '@'!
+                                   
+                                   This is the full video script:
+                                   
+                                   {ai_output}
+                                   
+                                   If there are characters in the story, describe their main features the same in all prompts.
+                                   """).generate()
     
     prompts = image_prompts.split('@')
+    print(fade.greenblue(f'Generating {len(prompts)} images...'))
+    image_urls = []
     for prompt in prompts:
+        if len(prompt) < 1:
+            continue
         print(fade.greenblue(f"Prompt: {prompt}"))
+        image_url = OpenAIImageRequest(prompt).generate()
+        image_urls.append(image_url)
+        print(fade.greenblue(f"Image URL: {image_url}"))
+        
 
     print(fade.greenblue('Generating audio file...'))
     eleven_labs_vid = os.getenv("ELEVEN_LABS_VOICE_ID")
@@ -100,6 +145,12 @@ Start with: “Welcome to our exploration of the unexplained phenomena of our un
             f.write(ai_output)
 
         shutil.copyfile(audio_file, 'output/output_' + uuid + '.mp3')
+        
+        index = 0
+        for image_url in image_urls:
+            target_path = os.path.join('output', 'output_' + uuid + "_" + str(index) + '.png')
+            urllib.request.urlretrieve(image_url, target_path)
+            index += 1
 
         print(fade.greenblue('Files exported.'))
         exit(0)
